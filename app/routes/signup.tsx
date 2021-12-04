@@ -1,13 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActionFunction,
   Form,
   LinksFunction,
   redirect,
   useActionData,
-  useFormAction,
 } from "remix";
-import { createUserSession } from "~/sessions.server";
 import { supabase } from "~/supabase";
 import stylesUrl from "../styles/auth.css";
 
@@ -15,71 +13,58 @@ export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 
-export function loader() {
-  return {
-    ENV: {
-      PUBLIC_SUPABASE_URL: process.env.PUBLIC_SUPABASE_URL,
-      PUBLIC_SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY,
-    },
-  };
-}
+export default function Signup() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-interface SignupActionData {
-  emailInvalid: boolean;
-  passwordInvalid: boolean;
-}
+  const handleSubmitSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-export const action: ActionFunction = async ({
-  request,
-}): Promise<SignupActionData | Response> => {
-  let formData = await request.formData();
-  let email = formData.get("email");
-  let password = formData.get("password");
-
-  let errors: Record<keyof SignupActionData, boolean> = {
-    emailInvalid: !email,
-    passwordInvalid: !password,
-  };
-
-  //If any errors are true, return error object
-  if (Object.values(errors).some((e) => e)) {
-    return errors;
-  }
-
-  if (typeof email === "string" && typeof password === "string") {
-    const res = await supabase.auth.api.createUser({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
-    if (res.data) {
-      return createUserSession(res.data.id, "/");
-    }
+    if (signUpError) setError(signUpError.message);
 
-    console.log(res);
-  }
-  return redirect("/");
-};
+    setLoading(false);
+  };
 
-export default function Signup() {
-  const actionData = useActionData<SignupActionData>();
-  console.log(actionData);
+  const handleClickGithubSignup = () => {
+    console.log("github");
+
+    supabase.auth.signIn({ provider: "github" });
+  };
 
   return (
     <div>
       <p>Signup to your app</p>
-      <Form method="post">
+      <form onSubmit={handleSubmitSignup}>
         <label>
           Email
-          <input name="email" type="email" />
+          <input
+            name="email"
+            type="email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
-        {actionData?.emailInvalid && <p>email is required</p>}
         <label>
           Password
-          <input name="password" type="password" />
+          <input
+            name="password"
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </label>
-        <button type="submit">Signup</button>
-      </Form>
-      {actionData?.passwordInvalid && <p>password is required</p>}
+        <button type="submit" disabled={loading}>
+          Signup
+        </button>
+      </form>
+      <button onClick={handleClickGithubSignup}>Sign up with github</button>
+      {error}
     </div>
   );
 }

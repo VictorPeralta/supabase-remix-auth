@@ -1,8 +1,8 @@
 import { ActionFunction, LoaderFunction, redirect } from "remix";
-import { logout } from "~/sessions.server";
+import { clearCookie } from "~/sessions.server";
 
 export let action: ActionFunction = async ({ request }): Promise<Response> => {
-  return logout(request);
+  return clearCookie(request);
 };
 
 export let loader: LoaderFunction = async () => {

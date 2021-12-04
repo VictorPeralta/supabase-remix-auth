@@ -1,6 +1,5 @@
 import * as React from "react";
 import {
-  Link,
   Links,
   LiveReload,
   LoaderFunction,
@@ -8,16 +7,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useCatch,
   useLoaderData,
-  useLocation,
 } from "remix";
 import type { LinksFunction } from "remix";
 
 import globalStylesUrl from "~/styles/global.css";
 import darkStylesUrl from "~/styles/dark.css";
-import { UserContextProvider, useUser } from "./auth";
+import { UserContextProvider } from "./useUser";
 import { getLoggedInUser } from "./sessions.server";
+import Layout from "./components/Layout";
+import RouteChangeAnnouncement from "./components/RouteChangeAnnouncement";
 
 /**
  * The `links` export is a function that returns an array of objects that map to
@@ -38,8 +37,16 @@ export let links: LinksFunction = () => {
   ];
 };
 
-export const loader: LoaderFunction = ({ request }) => {
-  return getLoggedInUser(request);
+interface RootLoader {
+  ENV: { [key: string]: string };
+}
+
+export const loader: LoaderFunction = async () => {
+  const ENV = {
+    PUBLIC_SUPABASE_URL: process.env.PUBLIC_SUPABASE_URL,
+    PUBLIC_SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY,
+  };
+  return { ENV };
 };
 
 /**
@@ -48,15 +55,33 @@ export const loader: LoaderFunction = ({ request }) => {
  * component for your app.
  */
 export default function App() {
-  const userId = useLoaderData();
+  const { ENV } = useLoaderData<RootLoader>();
+
   return (
     <Document>
-      <UserContextProvider userId={userId}>
+      <UserContextProvider>
         <Layout>
           <Outlet />
         </Layout>
       </UserContextProvider>
+      <EnvironmentSetter env={ENV} />
     </Document>
+  );
+}
+
+/**
+ This component loads environment variables into window.ENV 
+ * 
+ * @param param0 
+ * @returns 
+ */
+function EnvironmentSetter({ env }: { env: { [key: string]: string } }) {
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `window.ENV = ${JSON.stringify(env)}`,
+      }}
+    />
   );
 }
 
@@ -86,97 +111,3 @@ function Document({
     </html>
   );
 }
-
-function Layout({ children }: React.PropsWithChildren<{}>) {
-  const { userId } = useUser();
-
-  return (
-    <div className="remix-app">
-      <header className="">
-        <nav aria-label="Main navigation" className="navbar">
-          <div className="container navbar-menu">
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              {userId ? (
-                <form action="/logout" method="post">
-                  <button type="submit" className="button">
-                    Logout
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <li>
-                    <Link to="/login">Login</Link>
-                  </li>
-                  <li>
-                    <Link to="/signup">Sign up</Link>
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-        </nav>
-      </header>
-      <div className="">
-        <div className="container">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Provides an alert for screen reader users when the route changes.
- */
-const RouteChangeAnnouncement = React.memo(() => {
-  let [hydrated, setHydrated] = React.useState(false);
-  let [innerHtml, setInnerHtml] = React.useState("");
-  let location = useLocation();
-
-  React.useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  let firstRenderRef = React.useRef(true);
-  React.useEffect(() => {
-    // Skip the first render because we don't want an announcement on the
-    // initial page load.
-    if (firstRenderRef.current) {
-      firstRenderRef.current = false;
-      return;
-    }
-
-    let pageTitle = location.pathname === "/" ? "Home page" : document.title;
-    setInnerHtml(`Navigated to ${pageTitle}`);
-  }, [location.pathname]);
-
-  // Render nothing on the server. The live region provides no value unless
-  // scripts are loaded and the browser takes over normal routing.
-  if (!hydrated) {
-    return null;
-  }
-
-  return (
-    <div
-      aria-live="assertive"
-      aria-atomic
-      id="route-change-region"
-      style={{
-        border: "0",
-        clipPath: "inset(100%)",
-        clip: "rect(0 0 0 0)",
-        height: "1px",
-        margin: "-1px",
-        overflow: "hidden",
-        padding: "0",
-        position: "absolute",
-        width: "1px",
-        whiteSpace: "nowrap",
-        wordWrap: "normal",
-      }}
-    >
-      {innerHtml}
-    </div>
-  );
-});

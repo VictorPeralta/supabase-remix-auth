@@ -1,12 +1,5 @@
-import React from "react";
-import {
-  ActionFunction,
-  Form,
-  LinksFunction,
-  redirect,
-  useActionData,
-  useFormAction,
-} from "remix";
+import React, { useState } from "react";
+import { LinksFunction } from "remix";
 import { supabase } from "~/supabase";
 import stylesUrl from "../styles/auth.css";
 
@@ -14,51 +7,61 @@ export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 
-interface LoginActionData {
+interface SignupActionData {
   emailInvalid: boolean;
   passwordInvalid: boolean;
 }
 
-export const action: ActionFunction = async ({
-  request,
-}): Promise<LoginActionData | Response> => {
-  let formData = await request.formData();
-  let email = formData.get("email");
-  let password = formData.get("password");
+export default function Signup() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  let errors: Record<keyof LoginActionData, boolean> = {
-    emailInvalid: !email,
-    passwordInvalid: !password,
+  const handleSubmitSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const { error: signUpError } = await supabase.auth.signIn({
+      email,
+      password,
+    });
+    if (signUpError) setError(signUpError.message);
+
+    setLoading(false);
   };
 
-  //If any errors are true, return error object
-  if (Object.values(errors).some((e) => e)) {
-    return errors;
-  }
-
-  return redirect("/");
-};
-
-export default function Login() {
-  const actionData = useActionData<LoginActionData>();
-  console.log(actionData);
+  const handleClickGithubSignup = () => {
+    supabase.auth.signIn({ provider: "github" });
+  };
 
   return (
     <div>
-      <p>Login to your app</p>
-      <Form method="post">
+      <p>Log in to your app</p>
+      <form onSubmit={handleSubmitSignup}>
         <label>
           Email
-          <input name="email" type="email" />
+          <input
+            name="email"
+            type="email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
-        {actionData?.emailInvalid && <p>email is required</p>}
         <label>
           Password
-          <input name="password" type="password" />
+          <input
+            name="password"
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </label>
-        <button type="submit">Login</button>
-      </Form>
-      {actionData?.passwordInvalid && <p>password is required</p>}
+        <button type="submit" disabled={loading}>
+          Log in
+        </button>
+      </form>
+      <button onClick={handleClickGithubSignup}>Log in with github</button>
+      {error}
     </div>
   );
 }

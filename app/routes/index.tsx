@@ -1,16 +1,35 @@
-import React from "react";
-import { LoaderFunction, useLoaderData } from "remix";
-import { useUser } from "~/auth";
+import React, { useEffect } from "react";
+import { Link, LoaderFunction, useLoaderData } from "remix";
+import { useUser } from "~/useUser";
+import { supabase } from "~/supabase";
+import { getLoggedInUser } from "~/sessions.server";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = await getLoggedInUser(request);
+  console.log("loader", user);
+  return user;
+};
 
 export default function Index() {
-  const { userId } = useUser();
+  const { user, session } = useUser();
+  const { id: userId } = useLoaderData() || {};
+  console.log("indx", user, session);
+
   return (
     <div>
       <h1>Remix + Supabase Auth Starter</h1>
-      {userId ? (
-        <p>Your user id is: {userId}</p>
-      ) : (
-        <p>You're not logged in yet, go sign up!</p>
+
+      {user && <p>Your user id from client is: {user.id}</p>}
+
+      {userId && <p>Your user from server is: {userId}</p>}
+
+      {user && <button onClick={() => supabase.auth.signOut()}>logout</button>}
+
+      {!user && (
+        <p>
+          You're not logged in yet, go <Link to="signup">sign up</Link> or{" "}
+          <Link to="login">log in</Link>!
+        </p>
       )}
     </div>
   );

@@ -1,10 +1,13 @@
-import { createCookieSessionStorage, redirect } from "remix";
+import { User } from "@supabase/supabase-js";
+import { createCookieSessionStorage, json, redirect } from "remix";
+import { supabase } from "./supabase";
 
 let sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
   throw new Error("SESSION_SECRET must be set");
 }
 
+//TODO: Get this options from env
 let storage = createCookieSessionStorage({
   cookie: {
     name: "APP_SESSION",
@@ -17,13 +20,13 @@ let storage = createCookieSessionStorage({
   },
 });
 
-export async function createUserSession(userId: string, redirectTo: string) {
-  let session = await storage.getSession();
-  session.set("userId", userId);
+export async function createUserSession(accessToken: string) {
+  let cookie = await storage.getSession();
+  cookie.set("accessToken", accessToken);
 
-  return redirect(redirectTo, {
+  return json(null, {
     headers: {
-      "Set-Cookie": await storage.commitSession(session),
+      "Set-Cookie": await storage.commitSession(cookie),
     },
   });
 }
@@ -32,13 +35,14 @@ export function getUserSession(request: Request) {
   return storage.getSession(request.headers.get("Cookie"));
 }
 
-export async function getLoggedInUser(request: Request) {
+export async function getLoggedInUser(request: Request): Promise<User | null> {
   let session = await getUserSession(request);
-  console.log(session);
 
-  let userId = session.get("userId");
-  if (!userId || typeof userId !== "string") return null;
-  return userId;
+  let accessToken = session.get("accessToken");
+  console.log("getLogged", accessToken);
+  if (!accessToken || typeof accessToken !== "string") return null;
+  const { user } = await supabase.auth.api.getUser(accessToken);
+  return user;
 }
 
 export async function requireUserId(
@@ -54,9 +58,7 @@ export async function requireUserId(
   return userId;
 }
 
-export async function logout(request: Request) {
-  console.log("req", request);
-
+export async function clearCookie(request: Request) {
   let session = await storage.getSession(request.headers.get("Cookie"));
   return redirect("/", {
     headers: {
