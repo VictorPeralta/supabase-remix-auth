@@ -7,7 +7,7 @@ if (!sessionSecret) {
   throw new Error("SESSION_SECRET must be set");
 }
 
-//TODO: Get this options from env
+//TODO: Get these options from env
 let storage = createCookieSessionStorage({
   cookie: {
     name: "APP_SESSION",
