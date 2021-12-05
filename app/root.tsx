@@ -14,7 +14,6 @@ import type { LinksFunction } from "remix";
 import globalStylesUrl from "~/styles/global.css";
 import darkStylesUrl from "~/styles/dark.css";
 import { UserContextProvider } from "./useUser";
-import { getLoggedInUser } from "./sessions.server";
 import Layout from "./components/Layout";
 import RouteChangeAnnouncement from "./components/RouteChangeAnnouncement";
 
@@ -71,9 +70,6 @@ export default function App() {
 
 /**
  This component loads environment variables into window.ENV 
- * 
- * @param param0 
- * @returns 
  */
 function EnvironmentSetter({ env }: { env: { [key: string]: string } }) {
   return (
