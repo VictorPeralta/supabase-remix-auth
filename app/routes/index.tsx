@@ -6,14 +6,12 @@ import { getLoggedInUser } from "~/sessions.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getLoggedInUser(request);
-  console.log("loader", user);
   return user;
 };
 
 export default function Index() {
   const { user, session } = useUser();
   const { id: userId } = useLoaderData() || {};
-  console.log("indx", user, session);
 
   return (
     <div>

@@ -34,8 +34,6 @@ export default function Signup() {
   };
 
   const handleClickGithubSignup = () => {
-    console.log("github");
-
     supabase.auth.signIn({ provider: "github" });
   };
 

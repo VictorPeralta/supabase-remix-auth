@@ -20,44 +20,48 @@ let storage = createCookieSessionStorage({
   },
 });
 
+/**
+ * Create a cookie with that stores the provided `accessToken`
+ * @param accessToken The user's JWT, stored in the user's session
+ * @returns Response that sets cookie
+ */
 export async function createUserSession(accessToken: string) {
-  let cookie = await storage.getSession();
-  cookie.set("accessToken", accessToken);
+  // Get/create a cookie from the cookie store
+  let session = await storage.getSession();
 
+  //Set the accessToken property in the cookie
+  session.set("accessToken", accessToken);
+
+  // Return the response that sets the cookie in the client
   return json(null, {
     headers: {
-      "Set-Cookie": await storage.commitSession(cookie),
+      "Set-Cookie": await storage.commitSession(session),
     },
   });
 }
 
+/**
+ * Gets a session cookie from the passed in request
+ */
 export function getUserSession(request: Request) {
   return storage.getSession(request.headers.get("Cookie"));
 }
 
+/**
+ * Takes the JWT stored in the passed in session cookie and then fetches and returns the
+ * appropriate user details via the supabase api if token is valid, or null otherwise.
+ * @returns User for which accessToken is provided
+ */
 export async function getLoggedInUser(request: Request): Promise<User | null> {
   let session = await getUserSession(request);
 
   let accessToken = session.get("accessToken");
-  console.log("getLogged", accessToken);
   if (!accessToken || typeof accessToken !== "string") return null;
   const { user } = await supabase.auth.api.getUser(accessToken);
   return user;
 }
 
-export async function requireUserId(
-  request: Request,
-  redirectTo: string = new URL(request.url).pathname
-) {
-  let session = await getUserSession(request);
-  let userId = session.get("userId");
-  if (!userId || typeof userId !== "string") {
-    let searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    throw redirect(`/login?${searchParams}`);
-  }
-  return userId;
-}
-
+/** Destroy the session cookie  */
 export async function clearCookie(request: Request) {
   let session = await storage.getSession(request.headers.get("Cookie"));
   return redirect("/", {
