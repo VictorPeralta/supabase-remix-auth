@@ -17,6 +17,8 @@ export const action: ActionFunction = async ({ request }) => {
       return createUserSession(session.access_token);
     }
     if (authEvent === "SIGNED_OUT") {
+      console.log("signing out");
+
       return clearCookie(request);
     }
   }

@@ -1,6 +1,11 @@
-import { Link } from "remix";
+import { Link, LoaderFunction, useLoaderData } from "remix";
+import { getLoggedInUser } from "~/sessions.server";
 
 export default function Layout({ children }: React.PropsWithChildren<{}>) {
+  const loader = useLoaderData() || {};
+  const userId = loader.user?.id;
+  console.log("loader layout data", userId);
+
   return (
     <div className="remix-app">
       <header className="">
@@ -10,12 +15,10 @@ export default function Layout({ children }: React.PropsWithChildren<{}>) {
               <li>
                 <Link to="/">Home</Link>
               </li>
-              {/* {userId ? (
-                <form action="/logout" method="post">
-                  <button type="submit" className="button">
-                    Logout
-                  </button>
-                </form>
+              {userId ? (
+                <li>
+                  <Link to="/logout">Logout</Link>
+                </li>
               ) : (
                 <>
                   <li>
@@ -25,7 +28,7 @@ export default function Layout({ children }: React.PropsWithChildren<{}>) {
                     <Link to="/signup">Sign up</Link>
                   </li>
                 </>
-              )} */}
+              )}
             </ul>
           </div>
         </nav>

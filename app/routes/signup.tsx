@@ -5,6 +5,7 @@ import {
   LinksFunction,
   redirect,
   useActionData,
+  useNavigate,
 } from "remix";
 import { supabase } from "~/supabase";
 import stylesUrl from "../styles/auth.css";
@@ -18,6 +19,7 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  let navigate = useNavigate();
 
   const handleSubmitSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +31,7 @@ export default function Signup() {
       password,
     });
     if (signUpError) setError(signUpError.message);
+    else navigate("/");
 
     setLoading(false);
   };
