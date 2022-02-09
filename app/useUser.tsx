@@ -38,15 +38,6 @@ export const UserContextProvider = ({ children }: { children: ReactChild }) => {
   };
 
   useEffect(() => {
-    // On initial load, recover session from local storage and store in state
-    const session = supabase.auth.session();
-    setSession(session);
-    setUser(session?.user ?? null);
-
-    // If session exists by now, set a cookie when app is reloaded, in case session was expired while app wasn't open
-    // because session recovering/refreshing now happens on supabase constructor, before any onAuthStateChange events are emitted.
-    if (session) fetchSessionCookie("SIGNED_IN", session);
-
     //If auth state changes while user is in the app, set session/auth to new values
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -61,8 +52,19 @@ export const UserContextProvider = ({ children }: { children: ReactChild }) => {
     };
   }, []);
 
+  useEffect(() => {
+    // On initial load, recover session from local storage and store in state
+    const session = supabase.auth.session();
+    setSession(session);
+    setUser(session?.user ?? null);
+
+    // If session exists by now, set a cookie when app is reloaded, in case session was expired while app wasn't open
+    // because session recovering/refreshing now happens on supabase constructor, before any onAuthStateChange events are emitted.
+    if (session) fetchSessionCookie("SIGNED_IN", session);
+  }, []);
+
   const value: UserContextType = { user, session };
-  return <UserContext.Provider value={value} children={children} />;
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
 /**

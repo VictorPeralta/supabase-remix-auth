@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LinksFunction } from "remix";
+import { LinksFunction, useNavigate } from "remix";
 import { supabase } from "~/supabase";
 import stylesUrl from "../styles/auth.css";
 
@@ -7,27 +7,25 @@ export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 
-interface SignupActionData {
-  emailInvalid: boolean;
-  passwordInvalid: boolean;
-}
-
-export default function Signup() {
+export default function LogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  let navigate = useNavigate();
 
-  const handleSubmitSignup = async (e: React.FormEvent) => {
+  const handlesignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const { error: signUpError } = await supabase.auth.signIn({
+    const { error: signInError } = await supabase.auth.signIn({
       email,
       password,
     });
-    if (signUpError) setError(signUpError.message);
+
+    if (signInError) setError(signInError.message);
+    else navigate("/");
 
     setLoading(false);
   };
@@ -39,7 +37,7 @@ export default function Signup() {
   return (
     <div>
       <p>Log in to your app</p>
-      <form onSubmit={handleSubmitSignup}>
+      <form onSubmit={handlesignIn}>
         <label>
           Email
           <input

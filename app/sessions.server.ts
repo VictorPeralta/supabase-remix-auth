@@ -1,5 +1,5 @@
 import { User } from "@supabase/supabase-js";
-import { createCookieSessionStorage, json, redirect } from "remix";
+import { createCookieSessionStorage, json } from "remix";
 import { supabase } from "./supabase";
 
 let sessionSecret = process.env.SESSION_SECRET;
@@ -64,7 +64,7 @@ export async function getLoggedInUser(request: Request): Promise<User | null> {
 /** Destroy the session cookie  */
 export async function clearCookie(request: Request) {
   let session = await storage.getSession(request.headers.get("Cookie"));
-  return redirect("/", {
+  return json("/", {
     headers: {
       "Set-Cookie": await storage.destroySession(session),
     },
