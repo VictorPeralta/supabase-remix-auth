@@ -7,11 +7,6 @@ export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 
-interface SignupActionData {
-  emailInvalid: boolean;
-  passwordInvalid: boolean;
-}
-
 export default function LogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,5 +1,5 @@
 import { User } from "@supabase/supabase-js";
-import { createCookieSessionStorage, json, redirect } from "remix";
+import { createCookieSessionStorage, json } from "remix";
 import { supabase } from "./supabase";
 
 let sessionSecret = process.env.SESSION_SECRET;

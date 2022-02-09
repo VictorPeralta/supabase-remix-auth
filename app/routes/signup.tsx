@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  ActionFunction,
-  Form,
-  LinksFunction,
-  redirect,
-  useActionData,
-  useNavigate,
-} from "remix";
+import { LinksFunction, useNavigate } from "remix";
 import { supabase } from "~/supabase";
 import stylesUrl from "../styles/auth.css";
 

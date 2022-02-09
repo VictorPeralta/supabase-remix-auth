@@ -1,10 +1,9 @@
-import { Link, LoaderFunction, useLoaderData } from "remix";
-import { getLoggedInUser } from "~/sessions.server";
+import { Link, useLoaderData } from "remix";
+import React from "react";
 
-export default function Layout({ children }: React.PropsWithChildren<{}>) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const loader = useLoaderData() || {};
   const userId = loader.user?.id;
-  console.log("loader layout data", userId);
 
   return (
     <div className="remix-app">

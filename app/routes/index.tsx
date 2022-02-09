@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { Link, LoaderFunction, useLoaderData } from "remix";
 import { useUser } from "~/useUser";
 import { supabase } from "~/supabase";
@@ -10,7 +9,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function Index() {
-  const { user, session } = useUser();
+  const { user } = useUser();
   const { id: userId } = useLoaderData() || {};
 
   return (
